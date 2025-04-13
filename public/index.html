@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login with 2FA</title>
+  </head>
+  <body>
+    <h2>Register</h2>
+    <form id="registerForm">
+      <label>Username:</label>
+      <input type="text" id="registerUsername" required /><br />
+      <label>Password:</label>
+      <input type="password" id="registerPassword" required /><br />
+      <button type="submit">Register</button>
+    </form>
+    <div id="qrCodeSection" style="display: none">
+      <h3>Scan QR Code with Microsoft Authenticator</h3>
+      <img id="qrCodeImage" src="" alt="QR Code" />
+      <p>After scanning, use the code from your authenticator app to login.</p>
+    </div>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label>Username:</label>
+      <input type="text" id="loginUsername" required /><br />
+      <label>Password:</label>
+      <input type="password" id="loginPassword" required /><br />
+      <label>2FA Code:</label>
+      <input type="text" id="loginTOTP" required /><br />
+      <button type="submit">Login</button>
+    </form>
+
+    <div id="message"></div>
+
+    <script>
+      // Handle registration
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const username = document.getElementById("registerUsername").value;
+          const password = document.getElementById("registerPassword").value;
+          const response = await fetch("/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await response.json();
+          if (data.qrCode) {
+            document.getElementById("qrCodeImage").src = data.qrCode;
+            document.getElementById("qrCodeSection").style.display = "block";
+            document.getElementById("message").innerText =
+              "Registration successful! Scan the QR code with Microsoft Authenticator.";
+          } else {
+            document.getElementById("message").innerText = data.message;
+          }
+        });
+
+      // Handle login
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const username = document.getElementById("loginUsername").value;
+          const password = document.getElementById("loginPassword").value;
+          const totp = document.getElementById("loginTOTP").value;
+          const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, totp }),
+          });
+          const data = await response.json();
+          document.getElementById("message").innerText = data.message;
+        });
+    </script>
+  </body>
+</html>
